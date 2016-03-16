@@ -1,0 +1,6 @@
+CONGRATULATION! You have successfully installed OceanDAC v1.2.
+Before starting to use it, please check if the follow environment variables are registered.
+JAVA_HOME = C:\Program Files (x86)\Java\jdkxxx (your java jdk version)
+Path: add C:\Program Files (x86)\Java\jdkxxx\jre\bin\server into the Path variable.
+
+To check this: Right click on My Computer >> Properties >> Advanced system settings >> Environment Variables >>
