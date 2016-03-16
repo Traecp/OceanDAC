@@ -1,0 +1,10 @@
+PREREQUISITE:
+
++ Java SE JDK 32 bits (the version 1.8.0_66 is used when writing this software);
++ OceanOptics OmniDriver version 32 bits - Use the development package when asked;
++ GTK+ runtime environment - 32 bits;
++ Python (2.7) packages needed:
+--- Numpy, Scipy, Matplotlib
+--- lmfit 0.8.3
+--- pygtk (use the 32 bits all-in-one package)
+--- pyjnius

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__author__ = 'Tra NGUYEN THANH <thanh-tra.nguyen@esrf.fr>'
+__author__ = 'Thanh-Tra NGUYEN <thanh-tra.nguyen@esrf.fr>'
 __version__ = '1.2'
 __adv__ = 'setup.py'
 
@@ -9,7 +9,8 @@ __adv__ = 'setup.py'
 import os, sys, glob
 #sys.argv.append('bdist_wininst')
 from distutils.core import setup
-from distutils.command.install_data import install_data
+# from setuptools import setup
+from distutils.command.install import install as install_data
 from set_path import main as post_install
 
 class after_installation(install_data):
@@ -23,7 +24,7 @@ if __name__=="__main__":
 
 	# Packages (subdirectories in lib/)
 	packages = [name]
-	data_files = [(name, ["NEON_LINES.dat", "OceanDAC.ico"])]
+	data_files = [("Scripts", ["NEON_LINES.dat", "OceanDAC.ico"])]
 	# Scripts (in scripts/)
 	scripts = ['OceanDAC.py']
 
