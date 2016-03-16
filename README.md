@@ -1,4 +1,3 @@
-<img src="https://github.com/Traecp/OceanDAC/blob/master/OceanDAC.ico">
 <img src="https://github.com/Traecp/OceanDAC/blob/master/OceanDAC_v1.2_monitoring.png">
 
 OceanDAC is a software which communicates with Ocean Optics spectrometer in order to read luminescence spectra of Ruby or Samarium to measure pressure in Diamond Anvil Cell.
@@ -19,9 +18,7 @@ INSTALLATION PREREQUISITE:
 
 INSTALLATION:
 ==========================
-+ WINDOWS: Double click on the binary file OceanDAC_v1.2_setup.exe and follow the instructions.
-+ LINUX: python setup.py install --user
-
+Double click on the binary file OceanDAC_v1.2_setup.exe which is found in the Binary_setup folder and follow the instructions.
 
 AFTER INSTALLATION:
 ==========================
