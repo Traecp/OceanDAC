@@ -1,0 +1,17 @@
+PREREQUISITE:
+
++ Java SE JDK 32 bits (the version 1.8.0_121 is used when writing this software);
++ OceanOptics OmniDriver version 32 bits;
++ Anaconda for Python 2.7 - 32bit
++ PyQt4 (with Anaconda installed: open a command prompt window and type: conda install pyqt=4)
+If you use the 32bit version of Python (such as pythonxy), PyQt4 is already installed.
++ Pyjnius - before installing pyjnius, please set the following environmental variables for windows, otherwise pyjinius cannot be installed properly:
+
+    PYTHON_HOME (python install directory, for example: C:\Users\username\Anaconda2)
+    PYTHON_SCRIPTS (%PYTHON_HOME%\Scripts)
+    PYTHONPATH (%PYTHON_HOME%; %PYTHON_HOME%\DLLs; %PYTHON_HOME%\Lib; %PYTHON_HOME%\Tools; %PYTHON_SCRIPTS%;)
+    JDK_HOME
+    JRE_HOME
+    JAVA_HOME (=JDK_HOME but make both)
+
+    ADD TO path: %PYTHON_HOME%; %PYTHON_SCRIPTS%; %JAVA_HOME%; %JAVA_HOME%\bin; %JAVA_HOME%\jre\bin\server

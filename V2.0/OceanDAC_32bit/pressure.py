@@ -31,8 +31,8 @@ def objective(pars,y,x,model):
 		err =  y - ruby_model(pars,x)
 	elif model=="neon":
 		err =  y - neon_model(pars,x)
-	elif model=="summarium":
-		err =  y - summarium_model(pars,x)
+	elif model=="samarium":
+		err =  y - samarium_model(pars,x)
 	return err
 	
 def neon_model(params, x):
@@ -144,7 +144,7 @@ def ruby_fit(data_x, data_y):
 
 	return result.params, y
 
-def summarium_model(params, x):
+def samarium_model(params, x):
 	BG = params['BG'].value
 	x0 = params['x0'].value
 	A  = params['A'].value
@@ -153,7 +153,7 @@ def summarium_model(params, x):
 	model = BG + A*pseudo_Voigt(x0,w0,mu0,x)
 	return model
 	
-def summarium_init(data_x, data_y):
+def samarium_init(data_x, data_y):
 	param = Parameters()
 	A  = data_y.max()
 	BG = 100
@@ -168,10 +168,10 @@ def summarium_init(data_x, data_y):
 	param.add('mu0', value=mu0, vary=True, min=0, max=1)
 	return param
 	
-def summarium_fit(data_x, data_y):
-	param_init = summarium_init(data_x,data_y)
-	result = minimize(objective, param_init, args=(data_y,data_x, "summarium"))
-	y = summarium_model(result.params,data_x)
+def samarium_fit(data_x, data_y):
+	param_init = samarium_init(data_x,data_y)
+	result = minimize(objective, param_init, args=(data_y,data_x, "samarium"))
+	y = samarium_model(result.params,data_x)
 	return result.params, y
 	
 def temperature_correction(w0, w, T):
@@ -232,7 +232,7 @@ def pressure_Rashchenko_H(w0, w):
 	return P
 	
 def pressure_Jing_NH(w0, w):
-	# Jing et al. JAP 113 - 023507 (2013) - Non hydrostatic - up to 127 GPa, using summarium Sm:SrB4O7
+	# Jing et al. JAP 113 - 023507 (2013) - Non hydrostatic - up to 127 GPa, using samarium Sm:SrB4O7
 	delta_w = w - w0
 	P = 3.953*delta_w * (1.0 + 0.0044*delta_w)/(1.0 + 0.0120*delta_w)
 	return P

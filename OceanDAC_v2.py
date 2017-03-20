@@ -1,10 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import pygtk
-pygtk.require("2.0")
-import gobject
-import gtk
-gobject.threads_init()
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, GObject
+# GObject.threads_init()
 import numpy as np
 import sys, os
 from os import listdir
@@ -15,14 +14,14 @@ import peak
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib import rcParams
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg as FigureCanvas
-from matplotlib.backends.backend_gtkagg import NavigationToolbar2GTKAgg as NavigationToolbar
+from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
+from matplotlib.backends.backend_gtk3 import NavigationToolbar2GTK3 as NavigationToolbar
 import jnius_config
 import time, datetime
 
 def JVM_setup():
 	# jnius_config.add_options('-Xmx512m')
-	OceanDir = "C:\Program Files (x86)\Ocean Optics\OmniDriver\OOI_HOME"
+	OceanDir = "C:\Program Files\Ocean Optics\OmniDriver\OOI_HOME"
 	lsj      = [i for i in listdir(OceanDir) if isfile(join(OceanDir,i)) and i.endswith(".jar")]
 	for j in lsj:
 		jnius_config.add_classpath(join(OceanDir,j))
@@ -54,26 +53,26 @@ rcParams['grid.linestyle'] = ":"
 
 __NEON_PEAKS__ = np.loadtxt("NEON_LINES.dat")#Neon emission peaks (nm) - data from Pierre Bouvier CNRS designer of the camera
 
-class MyMainWindow(gtk.Window):
+class MyMainWindow(Gtk.Window):
 
 	def __init__(self):
 		super(MyMainWindow, self).__init__()
 		self.set_title("Ocean Optics Spectrometer - version %s - Last update: %s"%(__version__, __date__))
 		self.set_size_request(1250, 750)
-		#self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(6400, 6400, 6440))
-		self.set_position(gtk.WIN_POS_CENTER)
+		#self.modify_bg(Gtk.StateType.NORMAL, Gdk.Color(6400, 6400, 6440))
+		self.set_position(Gtk.WindowPosition.CENTER)
 		self.set_border_width(5)
 		# *********************************************************************************
 		# ******************* TOOL BAR ****************************************************
 		
-		self.toolbar = gtk.Toolbar()
-		self.toolbar.set_style(gtk.TOOLBAR_ICONS)
-		self.reference_btn = gtk.ToolButton(gtk.STOCK_INFO)
-		self.continuous_mode_btn = gtk.ToolButton(gtk.STOCK_MEDIA_RECORD)
-		self.about  = gtk.ToolButton(gtk.STOCK_DIALOG_WARNING)
-		self.zoom_fit_btn = gtk.ToolButton(gtk.STOCK_ZOOM_FIT)
-		self.export_main_graph_btn = gtk.ToolButton(gtk.STOCK_GO_DOWN)
-		self.detect_spectro_btn = gtk.ToolButton(gtk.STOCK_REFRESH)
+		self.toolbar = Gtk.Toolbar()
+		self.toolbar.set_style(Gtk.ToolbarStyle.ICONS)
+		self.reference_btn = Gtk.ToolButton(Gtk.STOCK_INFO)
+		self.continuous_mode_btn = Gtk.ToolButton(Gtk.STOCK_MEDIA_RECORD)
+		self.about  = Gtk.ToolButton(Gtk.STOCK_DIALOG_WARNING)
+		self.zoom_fit_btn = Gtk.ToolButton(Gtk.STOCK_ZOOM_FIT)
+		self.export_main_graph_btn = Gtk.ToolButton(Gtk.STOCK_GO_DOWN)
+		self.detect_spectro_btn = Gtk.ToolButton(Gtk.STOCK_REFRESH)
 		
 		self.toolbar.insert(self.detect_spectro_btn, 0)
 		self.toolbar.insert(self.continuous_mode_btn, 1)
@@ -82,13 +81,13 @@ class MyMainWindow(gtk.Window):
 		self.toolbar.insert(self.export_main_graph_btn, 4)
 		self.toolbar.insert(self.about, 5)
 		
-		self.tooltips = gtk.Tooltips()
-		self.tooltips.set_tip(self.reference_btn,"Take a background noise reference - Please use the same acquistion parameters (integration time, cycles,...) as for measurment.")
-		self.tooltips.set_tip(self.continuous_mode_btn,"Start/Stop continuous spectrum acquisition mode")
-		self.tooltips.set_tip(self.about,"About this program")
-		self.tooltips.set_tip(self.zoom_fit_btn,"Auto zoom graph")
-		self.tooltips.set_tip(self.export_main_graph_btn,"Export graphs data")
-		self.tooltips.set_tip(self.detect_spectro_btn,"Scan for spectrometers ...")
+		# self.tooltips = Gtk.Tooltips()
+		self.reference_btn.set_tooltip_text("Take a background noise reference - Please use the same acquistion parameters (integration time, cycles,...) as for measurment.")
+		self.continuous_mode_btn.set_tooltip_text("Start/Stop continuous spectrum acquisition mode")
+		self.about.set_tooltip_text("About this program")
+		self.zoom_fit_btn.set_tooltip_text("Auto zoom graph")
+		self.export_main_graph_btn.set_tooltip_text("Export graphs data")
+		self.detect_spectro_btn.set_tooltip_text("Scan for spectrometers ...")
 		
 		self.reference_btn.connect("clicked", self.take_reference)
 		self.continuous_mode_btn.connect("clicked", self.permanent_acquisition)
@@ -111,71 +110,78 @@ class MyMainWindow(gtk.Window):
 		self.box_num               = 0
 		self.background_cps        = None
 		#************************* BOXES ************************************************
-		vbox = gtk.VBox()
+		vbox = Gtk.VBox()
 		# vbox.pack_start(self.toolbar,False,False,0)
-		hbox=gtk.HBox()
+		hbox=Gtk.HBox()
 		self.current_folder = os.getcwd()
 		#************************* CONTROL PANELS ********************************************
 		#Left panel is a notebook, containing 2 control panels: acquisition and calibration
-		self.control_panel = gtk.Notebook()
-		self.control_acquisition_panel = gtk.VBox()
-		self.control_calibration_panel = gtk.VBox()
+		self.control_panel = Gtk.Notebook()
+		self.control_acquisition_panel = Gtk.VBox()
+		self.control_calibration_panel = Gtk.VBox()
 		
-		self.control_panel.append_page(self.control_acquisition_panel, gtk.Label("Acquisition"))
-		self.control_panel.append_page(self.control_calibration_panel, gtk.Label("Calibration"))
+		self.control_panel.append_page(self.control_acquisition_panel, Gtk.Label(label="Acquisition"))
+		self.control_panel.append_page(self.control_calibration_panel, Gtk.Label(label="Calibration"))
 		hbox.pack_start(self.control_panel, False, False, 0)
 		
 		#************************* ACQUISITION PANEL ************************************
-		self.acq_table = gtk.Table(7,2, False)
+		self.acq_table = Gtk.Table(7,2, False)
 			
-		self.acq_int_time_txt = gtk.Label("Integration time (ms)")
+		self.acq_int_time_txt = Gtk.Label(label="Integration time (ms)")
 		self.acq_int_time_txt.set_alignment(0,0.5)
-		time_adj = gtk.Adjustment(100,0,999999,5,100,0)
-		self.acq_int_time_btn = gtk.SpinButton(time_adj, 0,0)
+		time_adj = Gtk.Adjustment(100,0,999999,5,100,0)
+		# self.acq_int_time_btn = Gtk.SpinButton(time_adj, 0,0)
+		self.acq_int_time_btn = Gtk.SpinButton()
+		self.acq_int_time_btn.set_adjustment(time_adj)
 		self.acq_int_time_btn.set_numeric(True)
-		self.acq_int_time_btn.set_update_policy(gtk.UPDATE_IF_VALID)
+		# self.acq_int_time_btn.set_update_policy(Gtk.SpinButtonUpdatePolicy.IF_VALID)
+		self.acq_int_time_btn.set_update_policy(Gtk.SpinButtonUpdatePolicy.IF_VALID)
 		self.acq_int_time_btn.set_size_request(50,-1)
 		self.acq_int_time_btn.connect('value-changed',self.set_integration_time)
 		
-		self.acq_avg_scan_txt = gtk.Label("Scans to average")
+		self.acq_avg_scan_txt = Gtk.Label(label="Scans to average")
 		self.acq_avg_scan_txt.set_alignment(0,0.5)
-		avg_adj = gtk.Adjustment(1,1,1000,1,10,0)
-		self.acq_avg_scan_btn = gtk.SpinButton(avg_adj, 0,0)
+		avg_adj = Gtk.Adjustment(1,1,1000,1,10,0)
+		# self.acq_avg_scan_btn = Gtk.SpinButton(avg_adj, 0,0)
+		self.acq_avg_scan_btn = Gtk.SpinButton()
+		self.acq_avg_scan_btn.set_adjustment(avg_adj)
 		self.acq_avg_scan_btn.set_numeric(True)
-		self.acq_avg_scan_btn.set_update_policy(gtk.UPDATE_IF_VALID)
+		self.acq_avg_scan_btn.set_update_policy(Gtk.SpinButtonUpdatePolicy.IF_VALID)
 		self.acq_avg_scan_btn.set_size_request(50,-1)
 		self.acq_avg_scan_btn.connect('value-changed',self.set_average_scan)
 		
-		self.acq_boxcar_txt = gtk.Label("Boxcar pixels")
+		self.acq_boxcar_txt = Gtk.Label(label="Boxcar pixels")
 		self.acq_boxcar_txt.set_alignment(0,0.5)
-		boxcar_adj = gtk.Adjustment(0,0,100,1,10,0)
-		self.acq_boxcar_btn = gtk.SpinButton(boxcar_adj, 0,0)
+		boxcar_adj = Gtk.Adjustment(0,0,100,1,10,0)
+		# self.acq_boxcar_btn = Gtk.SpinButton(boxcar_adj, 0,0)
+		self.acq_boxcar_btn = Gtk.SpinButton()
+		self.acq_boxcar_btn.set_adjustment(boxcar_adj)
 		self.acq_boxcar_btn.set_numeric(True)
-		self.acq_boxcar_btn.set_update_policy(gtk.UPDATE_IF_VALID)
+		self.acq_boxcar_btn.set_update_policy(Gtk.SpinButtonUpdatePolicy.IF_VALID)
 		self.acq_boxcar_btn.set_size_request(50,-1)
 		self.acq_boxcar_btn.connect('value-changed',self.set_boxcar)
 		
-		self.acq_darkcorr_txt = gtk.Label("Dark current correction")
+		self.acq_darkcorr_txt = Gtk.Label(label="Dark current correction")
 		self.acq_darkcorr_txt.set_alignment(0,0.5)
-		self.acq_darkcorr_btn = gtk.CheckButton()
+		self.acq_darkcorr_btn = Gtk.CheckButton()
 		self.acq_darkcorr_btn.connect("toggled", self.set_dark_correction)
 		# self.acq_darkcorr_btn.set_active(True)
 		
-		self.acq_nonlinear_txt = gtk.Label("Non-linearity correction")
+		self.acq_nonlinear_txt = Gtk.Label(label="Non-linearity correction")
 		self.acq_nonlinear_txt.set_alignment(0,0.5)
-		self.acq_nonlinear_btn = gtk.CheckButton()
+		self.acq_nonlinear_btn = Gtk.CheckButton()
 		self.acq_nonlinear_btn.connect("toggled", self.set_nonlinear_correction)
 		# self.acq_nonlinear_btn.set_active(True)
 		
-		self.acq_strobeLamp_txt = gtk.Label("Enable strobe/lamp")
+		self.acq_strobeLamp_txt = Gtk.Label(label="Enable strobe/lamp")
 		self.acq_strobeLamp_txt.set_alignment(0,0.5)
-		self.acq_strobeLamp_btn = gtk.CheckButton()
+		self.acq_strobeLamp_btn = Gtk.CheckButton()
 		self.acq_strobeLamp_btn.connect("toggled", self.set_strobe_lamp)
 		
-		self.acquisition_btn = gtk.Button("Capture spectrum")
+		self.acquisition_btn = Gtk.Button("Capture spectrum")
 		self.acquisition_btn.connect("clicked",self.acquisition)
 		self.acquisition_btn.set_size_request(100,30)
-		self.tooltips.set_tip(self.acquisition_btn,"Capture single ruby spectrum and calculate the pressure.")
+		self.acquisition_btn.set_tooltip_text("Capture single ruby spectrum and calculate the pressure.")
 		
 		self.acq_table.attach(self.acq_int_time_txt, 0,1,0,1)
 		self.acq_table.attach(self.acq_int_time_btn, 1,2,0,1)
@@ -195,20 +201,20 @@ class MyMainWindow(gtk.Window):
 		self.control_acquisition_panel.pack_start(self.acq_table, False, False, 5)
 		
 		#************************* CALIBRATION PANEL ************************************
-		self.calib_table = gtk.Table(5,2, False)
-		self.calib_export_calib_btn = gtk.Button("Export current calibration")
-		self.calib_import_calib_btn = gtk.Button("Import calibration")
-		self.threshold_txt = gtk.Label("Peaks detection threshold")
+		self.calib_table = Gtk.Table(5,2, False)
+		self.calib_export_calib_btn = Gtk.Button("Export current calibration")
+		self.calib_import_calib_btn = Gtk.Button("Import calibration")
+		self.threshold_txt = Gtk.Label(label="Peaks detection threshold")
 		self.threshold_txt.set_alignment(0,0.5)
-		self.calib_threshold_entry = gtk.Entry()
+		self.calib_threshold_entry = Gtk.Entry()
 		self.calib_threshold_entry.set_text("0.30")
 		self.calib_threshold_entry.set_size_request(30,25)
-		self.calib_fit_btn = gtk.Button("Capture Neon spectrum")
-		self.calib_action_btn = gtk.Button("Calibrate")
+		self.calib_fit_btn = Gtk.Button("Capture Neon spectrum")
+		self.calib_action_btn = Gtk.Button("Calibrate")
 		
-		self.tooltips.set_tip(self.calib_threshold_entry,"Ratio Peak_Min/Peak_Max, value between 0 & 1")
-		self.tooltips.set_tip(self.threshold_txt,"Ratio Peak_Min/Peak_Max, value between 0 & 1")
-		self.tooltips.set_tip(self.calib_fit_btn,"Capture and fit Neon spectrum - Change the threshold until you are satisfied with the fitting.")
+		self.calib_threshold_entry.set_tooltip_text("Ratio Peak_Min/Peak_Max, value between 0 & 1")
+		self.threshold_txt.set_tooltip_text("Ratio Peak_Min/Peak_Max, value between 0 & 1")
+		self.calib_fit_btn.set_tooltip_text("Capture and fit Neon spectrum - Change the threshold until you are satisfied with the fitting.")
 		self.calib_action_btn.connect("clicked", self.do_calibration)
 		self.calib_fit_btn.connect("clicked", self.do_fit_neon)
 		self.calib_import_calib_btn.connect("clicked", self.do_import_calib)
@@ -226,7 +232,7 @@ class MyMainWindow(gtk.Window):
 		self.control_calibration_panel.pack_start(self.calib_table, False, False, 5)
 		#************************* SPECTRUM PLOT ****************************************
 		
-		fig_box = gtk.VBox()
+		fig_box = Gtk.VBox()
 		fig_box.pack_start(self.toolbar,False,False,0)
 		self.fig=Figure(dpi=100)
 		self.ax  = self.fig.add_subplot(111)
@@ -246,26 +252,26 @@ class MyMainWindow(gtk.Window):
 		
 		#### Results of fitted curves
 		
-		self.fit_results_table = gtk.Table(6,2, True)
-		title = gtk.Label()
-		title.set_use_markup(gtk.TRUE)
+		self.fit_results_table = Gtk.Table(6,2, True)
+		title = Gtk.Label()
+		title.set_use_markup(True)
 		title.set_markup("<span color= 'red'><b>Fitted results (Ruby peak R1) </b></span>")
-		y0 = gtk.Label("BG:")
-		xc = gtk.Label("x0:")
-		A = gtk.Label("A:")
-		w = gtk.Label("FWHM:")
-		mu = gtk.Label("mu:")
+		y0 = Gtk.Label(label="BG:")
+		xc = Gtk.Label(label="x0:")
+		A = Gtk.Label(label="A:")
+		w = Gtk.Label(label="FWHM:")
+		mu = Gtk.Label(label="mu:")
 		y0.set_alignment(0,0.5)
 		xc.set_alignment(0,0.5)
 		A.set_alignment(0,0.5)
 		w.set_alignment(0,0.5)
 		mu.set_alignment(0,0.5)
 
-		self.fitted_y0 = gtk.Label()
-		self.fitted_xc = gtk.Label()
-		self.fitted_A = gtk.Label()
-		self.fitted_w = gtk.Label()
-		self.fitted_mu = gtk.Label()
+		self.fitted_y0 = Gtk.Label()
+		self.fitted_xc = Gtk.Label()
+		self.fitted_A = Gtk.Label()
+		self.fitted_w = Gtk.Label()
+		self.fitted_mu = Gtk.Label()
 
 		self.fit_results_table.attach(title,0,2,0,1, xpadding=10)
 		self.fit_results_table.attach(y0,0,1,1,2)
@@ -285,43 +291,45 @@ class MyMainWindow(gtk.Window):
 		hbox.pack_start(fig_box, True,True, 0)
 		
 		#************************ RIGHT PANEL ****************************************
-		right_panel = gtk.VBox()
+		right_panel = Gtk.VBox()
 		#************************* CHOICE OF GAUGE ***********************************
-		self.gauge_selection_window = gtk.Notebook()
-		self.ruby_gauge = gtk.VBox()
-		self.Samarium_gauge = gtk.VBox()
+		self.gauge_selection_window = Gtk.Notebook()
+		self.ruby_gauge = Gtk.VBox()
+		self.Samarium_gauge = Gtk.VBox()
 		
-		self.gauge_selection_window.append_page(self.ruby_gauge, gtk.Label("Ruby Cr:Al2O3"))
-		self.gauge_selection_window.append_page(self.Samarium_gauge, gtk.Label("Samarium Sm:SrB4O7"))
+		self.gauge_selection_window.append_page(self.ruby_gauge, Gtk.Label(label="Ruby Cr:Al2O3"))
+		self.gauge_selection_window.append_page(self.Samarium_gauge, Gtk.Label(label="Samarium Sm:SrB4O7"))
 		
 		right_panel.pack_start(self.gauge_selection_window, False, False, 0)
 		# ***********************************************************************************
 		# **** Page for Ruby:
-		self.ruby_calib_table = gtk.Table(1,2,False)
-		self.ruby_hydro_btn = gtk.RadioButton(None, "Hydrostatic (Dewaele 2008)")
+		self.ruby_calib_table = Gtk.Table(1,2,False)
+		self.ruby_hydro_btn = Gtk.RadioButton(None, "Hydrostatic (Dewaele 2008)")
 		self.ruby_hydro_btn.set_active(True)
-		self.ruby_non_hydro_btn = gtk.RadioButton(self.ruby_hydro_btn, "Non-hydrostatic (Mao 1986)")
+		self.ruby_non_hydro_btn = Gtk.RadioButton(self.ruby_hydro_btn, "Non-hydrostatic (Mao 1986)")
 		
 		self.ruby_calib_table.attach(self.ruby_hydro_btn, 0,1,0,1)
 		self.ruby_calib_table.attach(self.ruby_non_hydro_btn, 1,2,0,1)
 		
 		self.ruby_gauge.pack_start(self.ruby_calib_table, False, False, 5)
 		self.ruby_gauge.pack_start(self.fit_results_table, False, False, 5)
-		hseparator = gtk.HSeparator()
+		hseparator = Gtk.HSeparator()
 		# self.ruby_gauge.pack_start(hseparator, False, False, 20)
-		self.pressure_table = gtk.Table(3,2,False)
-		ruby_lambda0_txt = gtk.Label(u"\u03BB 0 (nm):")
+		self.pressure_table = Gtk.Table(3,2,False)
+		ruby_lambda0_txt = Gtk.Label(label=u"\u03BB 0 (nm):")
 		ruby_lambda0_txt.set_alignment(0,0.5)
-		self.ruby_lambda0_btn = gtk.Entry()
+		self.ruby_lambda0_btn = Gtk.Entry()
 		self.ruby_lambda0_btn.set_text("694.24")
 		
-		temp_txt = gtk.Label(u"T (K):")
+		temp_txt = Gtk.Label(label=u"T (K):")
 		temp_txt.set_alignment(0,0.5)
-		self.temperature_entry = gtk.Entry()
-		temp_spin_adj         = gtk.Adjustment(298, 0, 1000, 0.5, 10.0, 0.0)
-		self.temp_spin_btn    = gtk.SpinButton(temp_spin_adj,1,1)
+		self.temperature_entry = Gtk.Entry()
+		temp_spin_adj         = Gtk.Adjustment(298, 0, 1000, 0.5, 10.0, 0.0)
+		# self.temp_spin_btn    = Gtk.SpinButton(temp_spin_adj,1,1)
+		self.temp_spin_btn    = Gtk.SpinButton()
+		self.temp_spin_btn .set_adjustment(temp_spin_adj)
 		self.temp_spin_btn.set_numeric(True)
-		self.temp_spin_btn.set_update_policy(gtk.UPDATE_IF_VALID)
+		self.temp_spin_btn.set_update_policy(Gtk.SpinButtonUpdatePolicy.IF_VALID)
 		self.temp_spin_btn.set_size_request(50,-1)
 		self.temp_spin_btn.connect('value-changed',self.pressure_calculation)
 				
@@ -335,26 +343,26 @@ class MyMainWindow(gtk.Window):
 		
 		# ************ Samarium page
 		# *** Fitted results
-		self.sum_fit_results_table = gtk.Table(6,2, True)
-		title2 = gtk.Label()
-		title2.set_use_markup(gtk.TRUE)
+		self.sum_fit_results_table = Gtk.Table(6,2, True)
+		title2 = Gtk.Label()
+		title2.set_use_markup(True)
 		title2.set_markup("<span color= 'red'><b>Fitted results (Samarium peak) </b></span>")
-		y0_s = gtk.Label("BG:")
-		xc_s = gtk.Label("x0:")
-		A_s = gtk.Label("A:")
-		w_s = gtk.Label("FWHM:")
-		mu_s = gtk.Label("mu:")
+		y0_s = Gtk.Label(label="BG:")
+		xc_s = Gtk.Label(label="x0:")
+		A_s = Gtk.Label(label="A:")
+		w_s = Gtk.Label(label="FWHM:")
+		mu_s = Gtk.Label(label="mu:")
 		y0_s.set_alignment(0,0.5)
 		xc_s.set_alignment(0,0.5)
 		A_s.set_alignment(0,0.5)
 		w_s.set_alignment(0,0.5)
 		mu_s.set_alignment(0,0.5)
 
-		self.sum_fitted_y0 = gtk.Label()
-		self.sum_fitted_xc = gtk.Label()
-		self.sum_fitted_A = gtk.Label()
-		self.sum_fitted_w = gtk.Label()
-		self.sum_fitted_mu = gtk.Label()
+		self.sum_fitted_y0 = Gtk.Label()
+		self.sum_fitted_xc = Gtk.Label()
+		self.sum_fitted_A = Gtk.Label()
+		self.sum_fitted_w = Gtk.Label()
+		self.sum_fitted_mu = Gtk.Label()
 
 		self.sum_fit_results_table.attach(title2,0,2,0,1)
 		self.sum_fit_results_table.attach(y0_s,0,1,1,2)
@@ -372,18 +380,18 @@ class MyMainWindow(gtk.Window):
 		self.sum_fit_results_table.set_row_spacings(5)
 		
 		# ****************** Calibration modes
-		self.Samarium_calib_table = gtk.Table(1,2,False)
-		self.Samarium_hydro_btn = gtk.RadioButton(None, "Hydrostatic (Rashchenko 2015)")
+		self.Samarium_calib_table = Gtk.Table(1,2,False)
+		self.Samarium_hydro_btn = Gtk.RadioButton(None, "Hydrostatic (Rashchenko 2015)")
 		self.Samarium_hydro_btn.set_active(True)
-		self.Samarium_non_hydro_btn = gtk.RadioButton(self.Samarium_hydro_btn, "Non-hydrostatic (Jing 2013)")
+		self.Samarium_non_hydro_btn = Gtk.RadioButton(self.Samarium_hydro_btn, "Non-hydrostatic (Jing 2013)")
 		
 		self.Samarium_calib_table.attach(self.Samarium_hydro_btn, 0,1,0,1)
 		self.Samarium_calib_table.attach(self.Samarium_non_hydro_btn, 1,2,0,1)
 		
-		self.Samarium_pressure_table = gtk.Table(1,2,False)
-		Samarium_lambda0_txt = gtk.Label(u"\u03BB 0 (nm):")
+		self.Samarium_pressure_table = Gtk.Table(1,2,False)
+		Samarium_lambda0_txt = Gtk.Label(label=u"\u03BB 0 (nm):")
 		Samarium_lambda0_txt.set_alignment(0,0.5)
-		self.Samarium_lambda0_btn = gtk.Entry()
+		self.Samarium_lambda0_btn = Gtk.Entry()
 		self.Samarium_lambda0_btn.set_text("685.51")
 				
 		self.Samarium_pressure_table.attach(Samarium_lambda0_txt, 0,1,0,1)
@@ -394,8 +402,8 @@ class MyMainWindow(gtk.Window):
 		self.Samarium_gauge.pack_start(self.Samarium_pressure_table, False, False, 0)
 		
 		# *********** DISPLAYING THE PRESSURE ***************************************
-		self.pressure_txt = gtk.Label()
-		self.pressure_txt.set_use_markup(gtk.TRUE)
+		self.pressure_txt = Gtk.Label()
+		self.pressure_txt.set_use_markup(True)
 		self.pressure_txt.set_markup("<span color='red'><b>P = </b></span>")
 		self.pressure_txt.set_alignment(0,0.5)
 		
@@ -419,10 +427,10 @@ class MyMainWindow(gtk.Window):
 		self.pressure_monitor_canvas.set_size_request(400,150)
 		self.pressure_monitor_navigation_toolbar = NavigationToolbar(self.pressure_monitor_canvas, self)
 		
-		hseparator2 = gtk.HSeparator()
+		hseparator2 = Gtk.HSeparator()
 		# right_panel.pack_start(hseparator2, False, False, 5)
-		# button_monitor_table = gtk.Table(1,1,False)
-		self.monitor_pressure_btn = gtk.ToggleButton("Start pressure monitoring")
+		# button_monitor_table = Gtk.Table(1,1,False)
+		self.monitor_pressure_btn = Gtk.ToggleButton("Start pressure monitoring")
 		self.monitor_pressure_btn.connect("toggled", self.monitoring_pressure)
 		self.monitor_pressure_btn.set_size_request(100,30)
 		# button_monitor_table.attach(self.monitor_pressure_btn, 0,1,0,1)
@@ -431,7 +439,7 @@ class MyMainWindow(gtk.Window):
 		right_panel.pack_start(self.monitor_pressure_btn, False, False, 10)
 		right_panel.pack_start(self.pressure_monitor_canvas, True, True, 0)
 		right_panel.pack_start(self.pressure_monitor_navigation_toolbar, False, False, 0)
-		self.export_pressure_btn = gtk.ToggleButton("Export pressure profile")
+		self.export_pressure_btn = Gtk.ToggleButton("Export pressure profile")
 		self.export_pressure_btn.connect("toggled", self.export_pressure)
 		self.export_pressure_btn.set_size_request(100,30)
 		right_panel.pack_start(self.export_pressure_btn, False, False, 10)
@@ -439,8 +447,8 @@ class MyMainWindow(gtk.Window):
 		
 		# ********************** STATUS BAR ******************************************
 		
-		self.status_bar = gtk.Table(1, 1, False)
-		self.status_label = gtk.Label()
+		self.status_bar = Gtk.Table(1, 1, False)
+		self.status_label = Gtk.Label()
 		self.status_label.set_alignment(0,0.5)
 		self.status_bar.attach(self.status_label, 0,1,0,1)
 				
@@ -458,7 +466,7 @@ class MyMainWindow(gtk.Window):
 	
 	def destroy_app(self, w):
 		self.Spectrometer.closeAllSpectrometers()
-		gtk.main_quit()
+		Gtk.main_quit()
 	
 	def image_init(self):
 		self.ax.cla()
@@ -587,7 +595,7 @@ class MyMainWindow(gtk.Window):
 			self.ax.lines.remove(self.fit_plot_[0])
 			self.fit_plot = None
 		task = self.run_forever()
-		gobject.idle_add(task.next)
+		GObject.idle_add(task.next)
 		
 	def run_forever(self):
 		while self.enable_permanent_mode:
@@ -692,10 +700,10 @@ class MyMainWindow(gtk.Window):
 			self.enable_permanent_mode = False
 	
 	def export_pressure(self, widget):
-		dialog = gtk.FileChooserDialog(title="Export pressure profile", action=gtk.FILE_CHOOSER_ACTION_SAVE, buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+		dialog = Gtk.FileChooserDialog(title="Export pressure profile", action=Gtk.FileChooserAction.SAVE, buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
 		dialog.set_current_folder(self.current_folder)
 		response = dialog.run()
-		if response==gtk.RESPONSE_OK:
+		if response==Gtk.ResponseType.OK:
 			filename=dialog.get_filename().decode('utf8')
 			folder = os.path.dirname(filename)
 			self.current_folder = folder
@@ -755,11 +763,11 @@ class MyMainWindow(gtk.Window):
 		
 	def do_export_current_calib(self, widget):
 		self.current_calib_coefficients = self.Spectrometer.getCalibrationCoefficientsFromEEProm(self.currentSpectroIndex)
-		dialog = gtk.FileChooserDialog(title="Export current calibration coefficients", action=gtk.FILE_CHOOSER_ACTION_SAVE, buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+		dialog = Gtk.FileChooserDialog(title="Export current calibration coefficients", action=Gtk.FileChooserAction.SAVE, buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
 		dialog.set_current_folder(self.current_folder)
 		dialog.set_current_name("*.calib")
 		response = dialog.run()
-		if response==gtk.RESPONSE_OK:
+		if response==Gtk.ResponseType.OK:
 			filename=dialog.get_filename().decode('utf8')
 			folder = os.path.dirname(filename)
 			self.current_folder = folder
@@ -768,10 +776,10 @@ class MyMainWindow(gtk.Window):
 		dialog.destroy()
 		
 	def do_import_calib(self, widget):
-		dialog = gtk.FileChooserDialog(title="Import calibration coefficients", action=gtk.FILE_CHOOSER_ACTION_OPEN, buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+		dialog = Gtk.FileChooserDialog(title="Import calibration coefficients", action=Gtk.FileChooserAction.OPEN, buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
 		dialog.set_current_folder(self.current_folder)
 		response = dialog.run()
-		if response==gtk.RESPONSE_OK:
+		if response==Gtk.ResponseType.OK:
 			filename=dialog.get_filename().decode('utf8')
 			folder = os.path.dirname(filename)
 			self.current_folder = folder
@@ -780,11 +788,11 @@ class MyMainWindow(gtk.Window):
 		dialog.destroy()
 		
 	def export_graph_data(self, widget):
-		dialog = gtk.FileChooserDialog(title="Export current graphs data", action=gtk.FILE_CHOOSER_ACTION_SAVE, buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+		dialog = Gtk.FileChooserDialog(title="Export current graphs data", action=Gtk.FileChooserAction.SAVE, buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
 		dialog.set_current_folder(self.current_folder)
 		dialog.set_current_name("*.dat")
 		response = dialog.run()
-		if response==gtk.RESPONSE_OK:
+		if response==Gtk.ResponseType.OK:
 			filename=dialog.get_filename().decode('utf8')
 			folder = os.path.dirname(filename)
 			self.current_folder = folder
@@ -806,24 +814,24 @@ class MyMainWindow(gtk.Window):
 	def popup_info(self,info_type,text):
 		""" info_type = WARNING, INFO, QUESTION, ERROR """
 		if info_type.upper() == "WARNING":
-			mess_type = gtk.MESSAGE_WARNING
+			mess_type = Gtk.MessageType.WARNING
 		elif info_type.upper() == "INFO":
-			mess_type = gtk.MESSAGE_INFO
+			mess_type = Gtk.MessageType.INFO
 		elif info_type.upper() == "ERROR":
-			mess_type = gtk.MESSAGE_ERROR
+			mess_type = Gtk.MessageType.ERROR
 		elif info_type.upper() == "QUESTION":
-			mess_type = gtk.MESSAGE_QUESTION
+			mess_type = Gtk.MessageType.QUESTION
 
-		self.warning=gtk.MessageDialog(self, gtk.DIALOG_DESTROY_WITH_PARENT, mess_type, gtk.BUTTONS_CLOSE,text)
+		self.warning=Gtk.MessageDialog(self, Gtk.DialogFlags.DESTROY_WITH_PARENT, mess_type, Gtk.ButtonsType.CLOSE,text)
 		self.warning.run()
 		self.warning.destroy()
 	
 	def main(self):
-		gtk.main()
+		Gtk.main()
 		
 if __name__ == "__main__":
 	
 	app = MyMainWindow()
-	gtk.threads_enter()
+	Gtk.threads_enter()
 	app.main()
-	gtk.threads_leave()
+	Gtk.threads_leave()

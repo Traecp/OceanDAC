@@ -6,7 +6,7 @@ from os.path import join
 
 def main():
 	java_home = "JAVA_HOME"
-	java_home_path = "C:\Program Files (x86)\Java"
+	java_home_path = r"C:\Program Files\Java"
 
 	try:
 		java = listdir(java_home_path)
@@ -22,14 +22,14 @@ def main():
 		cmd1 = 'setx %s "%s"'%(java_home, jv_path)
 		print cmd1
 		os.system(cmd1)
-		path_variable = jv_path+"\\jre\\bin\\server;"
+		path_variable = jv_path+r"\jre\bin\server;"+jv_path+r"\bin"
 		cmd2 = 'setx Path "%%Path%%;%s"'%path_variable
 		print cmd2
 		os.system(cmd2)
-		path_variable = jv_path+"\\bin"
-		cmd3 = 'setx Path "%%Path%%;%s"'%path_variable
-		print cmd3
-		os.system(cmd3)
+		# path_variable = jv_path+r"\bin"
+		# cmd3 = 'setx Path "%%Path%%;%s"'%path_variable
+		# print cmd3
+		# os.system(cmd3)
 
 	else:
 		print "You don't have java JDK installed. Please download and install it. The version SE JDK 1.8.0 build 66 is good."
