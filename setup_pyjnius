@@ -1,0 +1,21 @@
+INSTALL -
+Visual Studio 2008 or higher
+MS Visual C++ 2010 Redistributable Package (x86)
+(www.microsoft.com/en-us/download/details.aspx?id=5555)
+Java JDK (I installed java 8.1.0_121)
+Python* (2.7.9 or higher comes with PIP installed)
+pip install cython==0.19.2
+*Wait to install python until the very end, after you have finished building the debug files from the tutorial above !!!
+*If you already have Python installed, you may have to uninstall
+
+ADD ENVIRONMENT VARIABLES-
+
+    PYTHON_HOME (python install directory, C:\Python<ver.>)
+    PYTHON_SCRIPTS (%PYTHON_HOME%\Scripts)
+    PYTHONPATH (%PYTHON_HOME%; %PYTHON_HOME%\DLLs; %PYTHON_HOME%\Lib; %PYTHON_HOME%\Tools; %PYTHON_SCRIPTS%;)
+    JDK_HOME
+    JRE_HOME
+    JAVA_HOME (=JDK_HOME but make both)
+
+ADD TO path -
+%PYTHON_HOME%; %PYTHON_SCRIPTS%; %JAVA_HOME%; %JAVA_HOME%\bin; %JAVA_HOME%\jre\bin\server;

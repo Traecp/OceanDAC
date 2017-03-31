@@ -14,7 +14,7 @@ import time, datetime
 
 def JVM_setup():
 	# jnius_config.add_options('-Xmx512m')
-	OceanDir = "C:\Program Files (x86)\Ocean Optics\OmniDriver\OOI_HOME"
+	OceanDir = "C:\Program Files\Ocean Optics\OmniDriver\OOI_HOME"
 	lsj      = [i for i in listdir(OceanDir) if isfile(join(OceanDir,i)) and i.endswith(".jar")]
 	for j in lsj:
 		jnius_config.add_classpath(join(OceanDir,j))
@@ -26,8 +26,8 @@ Wrapper= autoclass("com.oceanoptics.omnidriver.api.wrapper.Wrapper")
 
 _author__="Tra NGUYEN THANH"
 __email__ = "thanhtra0104@gmail.com"
-__version__ = "2.0"
-__date__="17/03/2017"
+__version__ = "2.1"
+__date__="31/03/2017"
 
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = ['Tahoma']
@@ -287,9 +287,9 @@ class Main(QMainWindow, Ui_MainWindow):
             
     def do_permanent_acq(self):
         if self.enable_permanent_mode:
-            self.actionRecord.setIcon(self.greenIcon)
-        else:
             self.actionRecord.setIcon(self.redIcon)
+        else:
+            self.actionRecord.setIcon(self.greenIcon)
             
         if self.fit_plot is not None:
             self.ax.lines.remove(self.fit_plot_[0])
@@ -342,20 +342,26 @@ class Main(QMainWindow, Ui_MainWindow):
             self.lambda0 = float(self.lambda0)
             self.fit_param,self.fit_data = pressure.ruby_fit(fit_x, fit_y)
             self.R1_peak = self.fit_param["x0"].value
+            self.fluorescence_peak = self.R1_peak
             self.temperature = self.temp_spin_btn.value()
             if self.ruby_hydro_btn.isChecked():
                 self.pressure    = pressure.pressure_Datchi_Dewaele(self.lambda0, self.R1_peak, self.temperature)
+                self.pressure_formula = "Hydrostatic Dewaele 2008"
             elif self.ruby_non_hydro_btn.isChecked():
                 self.pressure    = pressure.pressure_Mao_NH(self.lambda0, self.R1_peak, self.temperature)
+                self.pressure_formula = "Non-hydrostatic Mao 1986"
         elif self.pressure_gauge == 1:
             self.lambda0 = self.Samarium_lambda0_btn.text()
             self.lambda0 = float(self.lambda0)
             self.fit_param,self.fit_data = pressure.samarium_fit(fit_x, fit_y)
             self.Samarium_peak = self.fit_param["x0"].value
+            self.fluorescence_peak = self.Samarium_peak
             if self.Samarium_hydro_btn.isChecked():
                 self.pressure    = pressure.pressure_Rashchenko_H(self.lambda0, self.Samarium_peak)
+                self.pressure_formula = "Hydrostatic Rashchenko 2015"
             elif self.Samarium_non_hydro_btn.isChecked():
                 self.pressure    = pressure.pressure_Jing_NH(self.lambda0, self.Samarium_peak)
+                self.pressure_formula = "Non-hydrostatic Jing 2013"
                 
         self.pressure_list.append(self.pressure)
         timestamp = time.time()
@@ -479,10 +485,13 @@ class Main(QMainWindow, Ui_MainWindow):
         folder = os.path.dirname(filename)
         self.current_folder = folder
         data = np.vstack([self.wavelength, self.intensity])
+        scale ={0:"Ruby", 1:"Samarium"}
         header = ""
         header += "Integration time (ms): %d"%self.integration_time
         header += "\nScans to average: %d"%self.avg_scan_num
         header += "\nBoxcar smoothing width (pixels): %d"%self.box_num
+        if self.fit_plot is not None:
+            header += "\nPressure: %4.4f GPa | Wavelength: %6.4f | Lambda_0: %6.4f | Temperature: %4.2f | Pressure scale: %s | %s"%(self.pressure, self.fluorescence_peak, self.lambda0, self.temperature, scale[self.pressure_gauge], self.pressure_formula)
         header += "\n>>> Data start here <<<"
         header += "\nWavelength (nm) \t Intensity"
         if self.fit_plot is not None:

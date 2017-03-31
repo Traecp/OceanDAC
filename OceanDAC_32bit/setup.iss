@@ -2,11 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "OceanDAC"
-#define MyAppVersion "1.2"
+#define MyAppVersion "2.1"
 #define MyAppPublisher "Tra NGUYEN"
 #define MyAppURL "https://github.com/Traecp"
-#define MyAppExeName "OceanDAC.pyc"
-#define MyPostInstallSetup "set_path.pyc"
+#define MyAppExeName "OceanDAC.py"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -22,10 +21,10 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
-InfoBeforeFile=E:\Software\PRL\V1.2\OceanDAC\Install.txt
-InfoAfterFile=E:\Software\PRL\V1.2\OceanDAC\After_install.txt
-OutputBaseFilename=OceanDAC_setup
-SetupIconFile=E:\Software\PRL\V1.2\OceanDAC\OceanDAC.ico
+InfoBeforeFile=E:\Copy\My scripts\Qt\OceanDAC\OceanDAC_32bit\Install.txt
+InfoAfterFile=E:\Copy\My scripts\Qt\OceanDAC\OceanDAC_32bit\After_install.txt
+OutputBaseFilename=OceanDAC_32bit_setup
+SetupIconFile=E:\Copy\My scripts\Qt\OceanDAC\OceanDAC_32bit\OceanDAC.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -38,16 +37,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "E:\Software\PRL\V1.2\OceanDAC\OceanDAC.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Software\PRL\V1.2\OceanDAC\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\Copy\My scripts\Qt\OceanDAC\OceanDAC_32bit\OceanDAC.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\Copy\My scripts\Qt\OceanDAC\OceanDAC_32bit\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{commonprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}";IconFilename: "{app}\OceanDAC.ico"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
-
-[Run]
-Filename: "{app}\{#MyPostInstallSetup}"; Description: "Setup system environment variables"; Flags: shellexec skipifsilent nowait
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: shellexec postinstall skipifsilent
-

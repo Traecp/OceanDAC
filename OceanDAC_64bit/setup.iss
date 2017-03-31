@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "OceanDAC"
-#define MyAppVersion "2.0"
+#define MyAppVersion "2.1"
 #define MyAppPublisher "Tra NGUYEN"
 #define MyAppURL "https://github.com/Traecp"
 #define MyAppExeName "OceanDAC.py"
@@ -37,7 +37,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "E:\Copy\My scripts\Qt\OceanDAC\OceanDAC_64bit\OceanDAC.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\Copy\My scripts\Qt\OceanDAC\OceanDAC_64bit\OceanDAC.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\Copy\My scripts\Qt\OceanDAC\OceanDAC_64bit\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
